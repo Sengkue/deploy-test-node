@@ -29,9 +29,8 @@ app.get('/api/data', (req, res) => {
 // Database Test Route
 app.get('/api/database', async (req, res) => {
   try {
-    // This tries to fetch from a table named "users" (just as an example)
-    // You can change "users" to whatever table you create in Supabase
-    const { data, error } = await supabase.from('users').select('*').limit(5);
+    // This tries to fetch from a table named "user" 
+    const { data, error } = await supabase.from('user').select('*').limit(5);
 
     if (error) throw error;
 
