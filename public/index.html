@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node API Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #f8fafc;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .data-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1rem;
+        }
+        
+        .data-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .data-label {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-value {
+            color: #e2e8f0;
+            font-weight: 400;
+            text-align: right;
+        }
+        
+        .status-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>API Dashboard</h1>
+            <p>Fetching real-time data from Express backend</p>
+        </div>
+
+        <div class="data-card">
+            <div class="data-row">
+                <span class="data-label">Status</span>
+                <span class="status-badge" id="statusVal">Loading...</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Message</span>
+                <span class="data-value" id="msgVal">...</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Timestamp</span>
+                <span class="data-value" id="timeVal">...</span>
+            </div>
+        </div>
+
+        <button class="btn" onclick="fetchData()">Refresh Data</button>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const btn = document.querySelector('.btn');
+            btn.textContent = 'Fetching...';
+            
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                
+                document.getElementById('statusVal').textContent = data.status.toUpperCase();
+                document.getElementById('msgVal').textContent = data.message;
+                
+                const date = new Date(data.timestamp);
+                document.getElementById('timeVal').textContent = date.toLocaleTimeString();
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('statusVal').textContent = 'ERROR';
+                document.getElementById('statusVal').style.color = '#f87171';
+                document.getElementById('statusVal').style.background = 'rgba(239, 68, 68, 0.2)';
+            }
+            
+            setTimeout(() => {
+                btn.textContent = 'Refresh Data';
+            }, 500);
+        }
+
+        // Fetch data on initial load
+        fetchData();
+    </script>
+</body>
+</html>
