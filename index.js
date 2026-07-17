@@ -26,23 +26,53 @@ app.get('/api/data', (req, res) => {
   });
 });
 
-// Database Test Route
-app.get('/api/database', async (req, res) => {
+// --- USER CRUD ROUTES ---
+
+// READ all users
+app.get('/api/user', async (req, res) => {
   try {
-    // This tries to fetch from a table named "user" 
-    const { data, error } = await supabase.from('user').select('*').limit(5);
-
+    const { data, error } = await supabase.from('user').select('*').order('created_at', { ascending: false });
     if (error) throw error;
-
-    res.json({
-      status: 'success',
-      data: data
-    });
+    res.json({ status: 'success', data: data });
   } catch (err) {
-    res.status(500).json({
-      status: 'error',
-      message: err.message
-    });
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// CREATE a new user
+app.post('/api/user', async (req, res) => {
+  try {
+    const { f_name, l_name, username } = req.body;
+    const { data, error } = await supabase.from('user').insert([{ f_name, l_name, username }]).select();
+    if (error) throw error;
+    res.json({ status: 'success', data: data[0] });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// UPDATE an existing user
+app.put('/api/user/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { f_name, l_name, username } = req.body;
+    const { data, error } = await supabase.from('user').update({ f_name, l_name, username }).eq('id', id).select();
+    if (error) throw error;
+    res.json({ status: 'success', data: data[0] });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// DELETE a user
+app.delete('/api/user/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase.from('user').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ status: 'success', message: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 });
 

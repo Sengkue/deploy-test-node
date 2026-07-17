@@ -126,6 +126,33 @@
         .btn:active {
             transform: translateY(0);
         }
+        
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .btn-small {
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            border: none;
+            cursor: pointer;
+            color: white;
+            margin-left: 0.5rem;
+        }
+        
+        .btn-delete { background: #ef4444; }
+        .btn-edit { background: #3b82f6; }
     </style>
 </head>
 <body>
@@ -145,6 +172,20 @@
                 <span class="data-label">Timestamp</span>
                 <span class="data-value" id="timeVal">...</span>
             </div>
+        </div>
+
+        <div class="data-card">
+            <h3 style="color: #94a3b8; margin-bottom: 1rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Add New User</h3>
+            <div class="input-group">
+                <input type="text" id="newFname" placeholder="First Name" />
+            </div>
+            <div class="input-group">
+                <input type="text" id="newLname" placeholder="Last Name" />
+            </div>
+            <div class="input-group">
+                <input type="text" id="newUsername" placeholder="Username" />
+            </div>
+            <button class="btn" style="padding: 0.75rem; font-size: 0.9rem;" onclick="createUser()">Add User</button>
         </div>
 
         <div class="data-card">
@@ -172,15 +213,21 @@
                 document.getElementById('timeVal').textContent = date.toLocaleTimeString();
                 
                 // Fetch Database data
-                const dbResponse = await fetch('/api/database');
+                const dbResponse = await fetch('/api/user');
                 const dbData = await dbResponse.json();
                 
                 const usersList = document.getElementById('usersList');
                 if (dbData.status === 'success' && dbData.data && dbData.data.length > 0) {
                     usersList.innerHTML = dbData.data.map(user => 
-                        `<div style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <strong>${user.username || 'No Username'}</strong> 
-                            <span style="color: #94a3b8; font-size: 0.8rem; margin-left: 0.5rem;">(${user.f_name || ''} ${user.l_name || ''})</span>
+                        `<div style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${user.username || 'No Username'}</strong> 
+                                <span style="color: #94a3b8; font-size: 0.8rem; margin-left: 0.5rem;">(${user.f_name || ''} ${user.l_name || ''})</span>
+                            </div>
+                            <div>
+                                <button class="btn-small btn-edit" onclick="updateUser('${user.id}', '${user.f_name}', '${user.l_name}', '${user.username}')">Edit</button>
+                                <button class="btn-small btn-delete" onclick="deleteUser('${user.id}')">Delete</button>
+                            </div>
                         </div>`
                     ).join('');
                 } else if (dbData.status === 'success') {
@@ -199,6 +246,46 @@
             setTimeout(() => {
                 btn.textContent = 'Refresh Data';
             }, 500);
+        }
+
+        async function createUser() {
+            const f_name = document.getElementById('newFname').value;
+            const l_name = document.getElementById('newLname').value;
+            const username = document.getElementById('newUsername').value;
+            
+            if (!username) return alert('Username is required!');
+
+            await fetch('/api/user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ f_name, l_name, username })
+            });
+            
+            document.getElementById('newFname').value = '';
+            document.getElementById('newLname').value = '';
+            document.getElementById('newUsername').value = '';
+            fetchData();
+        }
+
+        async function updateUser(id, oldF, oldL, oldU) {
+            const newU = prompt("Update Username:", oldU);
+            if (newU === null) return;
+            
+            await fetch('/api/user/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ f_name: oldF, l_name: oldL, username: newU })
+            });
+            fetchData();
+        }
+
+        async function deleteUser(id) {
+            if (!confirm("Are you sure you want to delete this user?")) return;
+            
+            await fetch('/api/user/' + id, {
+                method: 'DELETE'
+            });
+            fetchData();
         }
 
         // Fetch data on initial load
