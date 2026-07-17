@@ -138,16 +138,19 @@
 
         <div class="data-card">
             <div class="data-row">
-                <span class="data-label">Status</span>
+                <span class="data-label">API Status</span>
                 <span class="status-badge" id="statusVal">Loading...</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Message</span>
-                <span class="data-value" id="msgVal">...</span>
             </div>
             <div class="data-row">
                 <span class="data-label">Timestamp</span>
                 <span class="data-value" id="timeVal">...</span>
+            </div>
+        </div>
+
+        <div class="data-card">
+            <h3 style="color: #94a3b8; margin-bottom: 1rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Users from Database</h3>
+            <div id="usersList" style="color: #e2e8f0; font-weight: 400; font-size: 0.9rem;">
+                Loading users...
             </div>
         </div>
 
@@ -160,14 +163,31 @@
             btn.textContent = 'Fetching...';
             
             try {
+                // Fetch basic API data
                 const response = await fetch('/api/data');
                 const data = await response.json();
                 
                 document.getElementById('statusVal').textContent = data.status.toUpperCase();
-                document.getElementById('msgVal').textContent = data.message;
-                
                 const date = new Date(data.timestamp);
                 document.getElementById('timeVal').textContent = date.toLocaleTimeString();
+                
+                // Fetch Database data
+                const dbResponse = await fetch('/api/database');
+                const dbData = await dbResponse.json();
+                
+                const usersList = document.getElementById('usersList');
+                if (dbData.status === 'success' && dbData.data && dbData.data.length > 0) {
+                    usersList.innerHTML = dbData.data.map(user => 
+                        `<div style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <strong>${user.username || 'No Username'}</strong> 
+                            <span style="color: #94a3b8; font-size: 0.8rem; margin-left: 0.5rem;">(${user.f_name || ''} ${user.l_name || ''})</span>
+                        </div>`
+                    ).join('');
+                } else if (dbData.status === 'success') {
+                    usersList.innerHTML = '<em>No users found in database yet. Add some in Supabase!</em>';
+                } else {
+                    usersList.innerHTML = `<span style="color: #f87171;">Error: ${dbData.message}</span>`;
+                }
                 
             } catch (error) {
                 console.error('Error fetching data:', error);
