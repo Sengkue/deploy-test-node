@@ -1,6 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { createClient } = require('@supabase/supabase-js');
+
+// Initialize Supabase (it uses the variables from your .env file)
+const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const supabaseKey = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_KEY';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = express();
 
@@ -18,6 +24,27 @@ app.get('/api/data', (req, res) => {
     message: 'Welcome to the basic Node.js API!',
     timestamp: new Date().toISOString()
   });
+});
+
+// Database Test Route
+app.get('/api/database', async (req, res) => {
+  try {
+    // This tries to fetch from a table named "users" (just as an example)
+    // You can change "users" to whatever table you create in Supabase
+    const { data, error } = await supabase.from('users').select('*').limit(5);
+
+    if (error) throw error;
+
+    res.json({
+      status: 'success',
+      data: data
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      message: err.message
+    });
+  }
 });
 
 // Another Route
